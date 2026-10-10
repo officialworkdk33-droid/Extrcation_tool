@@ -1,0 +1,20 @@
+PERMIT SERVER - HOST IT ON THIS PC (no .bat files needed)
+=========================================================
+1. Python 3.12+ installed (python.org, "Add python.exe to PATH" ticked).  Python 3.14 is fine.
+2. Unzip PERMIT_SERVER.zip to  C:\PERMIT_SERVER   (keep every file and folder together).
+3. Double-click  START_PERMIT_SERVER.py
+   - first time: it installs the libraries itself (internet, 1-3 minutes)
+   - then the browser opens  http://localhost:8080  -> create the admin user
+   - keep the black window open (minimise it); closing it stops the server
+4. Settings > Internet address > Your company domain:  https://permit.infinitydeclaration.com
+   (token EMPTY - the Cloudflare tunnel already runs as a Windows service on this PC) > Save.
+5. Users: one user per person.  Windows power: Sleep = Never.
+6. Start automatically after a restart (optional): press Win+R, type  shell:startup  and Enter,
+   right-click START_PERMIT_SERVER.py > Show more options > Create shortcut, move the shortcut into that folder.
+
+Cloudflare (once):  route  permit.infinitydeclaration.com  ->  http://localhost:8080   (done)
+                    the domain infinitydeclaration.com must show "Active" in dash.cloudflare.com.
+
+UPDATE to a new version: close the server window -> unzip the new zip over C:\PERMIT_SERVER (NEVER delete the folder
+PERMIT_SERVER_DATA - database, jobs, users) -> double-click START_PERMIT_SERVER.py again.
+(The .bat files are optional extras: PERMIT_SERVER.exe build, background start, firewall for other office PCs.)

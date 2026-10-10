@@ -1,0 +1,14 @@
+# Cloud / Linux server: docker compose up -d   ->   http://<server>:8080  (put HTTPS in front, e.g. Caddy or Cloudflare)
+services:
+  permit-server:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PERMIT_ADMIN_USER=admin
+      - PERMIT_ADMIN_PASSWORD=change-this-password
+    volumes:
+      - permitdata:/data
+volumes:
+  permitdata:

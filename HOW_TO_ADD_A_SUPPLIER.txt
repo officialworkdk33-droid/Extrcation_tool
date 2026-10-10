@@ -1,0 +1,110 @@
+HOW TO ADD A NEW SUPPLIER / IMPORTER / EXPORTER TO THE PERMIT SERVER
+====================================================================
+
+The server learns in two ways:
+
+  A. FROM YOUR EDITS (nothing to install)
+     - Item page: change HS / HS UOM / COO / CASC and tick "save to product master" -> the next shipment of that item
+       number fills by itself (Settings > Product masters, one Excel per tool).
+     - Changing a supplier HS code to a Singapore HS code remembers the mapping (HS codes page > Supplier HS to
+       Singapore HS) for every later job.
+     - Exporter / importer UEN typed on the Shipments tab is remembered per company name.
+
+  B. A NEW DOCUMENT LAYOUT = A PLUGIN (one small .py file, no rebuild of the exe)
+     When "Any supplier" reads a new supplier badly (wrong items, missing HS / COO / weights), make a reader plugin
+     for that layout in a new chat with Claude, then drop it on the server. Steps below.
+
+
+--------------------------------------------------------------------
+1. MAKE THE PLUGIN IN A NEW CHAT
+--------------------------------------------------------------------
+Attach to the new chat:
+  - 2 or 3 sample PDFs of that supplier (invoice; packing list / delivery note and B/L / air waybill if they come too).
+    Different shipments are better than one (they show what changes).
+  - PLUGIN_TEMPLATE.py   (Settings > Suppliers and readers > "Plugin template", or this folder)
+  - Optional: a correct dec-upload Excel you made by hand for one of the samples (the answer to check against).
+
+Copy this prompt, fill the [ ] parts, send:
+
+  ----------------------------------------------------------------- PROMPT (copy from here)
+  Make a READER PLUGIN for my PERMIT SERVER (Singapore TradeNet dec-upload permits, Flask server, Python).
+  Follow the attached PLUGIN_TEMPLATE.py exactly: NAME, match(text), read(path, pages, C) returning a list of
+  documents made with _inv() / _line() (and readers.new_pl() for a packing list), finished with _finish(d, C).
+
+  Supplier: [ACME ENGINEERING PTE LTD]          Direction: [EXPORT from Singapore / IMPORT into Singapore]
+  Documents attached: [invoice + packing list + B/L ...]
+  Per item line I need: item no, description, qty + UOM, unit price, amount, currency, HS code (8 digits),
+  country of origin (2-letter), net weight (and gross weight if printed).
+  Per invoice: invoice no + date, incoterm, currency, total, HAWB / HBL, total gross weight, packages,
+  exporter / importer name + UEN, ship-to country.
+  Special rules: [e.g. HS is 10 digits -> first 8 / weights only on the packing list / scanned PDF /
+                  "Package Fee" is an other charge, not an item / one PDF holds several invoices]
+
+  Rules: only the Python standard library + pdfplumber, openpyxl, permit_engine, readers, export_docs.
+  match() must only be true for this supplier's layout. Never guess a value - leave it empty and add a note.
+  Test the plugin on every attached PDF and show me the lines it reads and the totals check.
+  Give me ONE file named [acme].py.
+  ----------------------------------------------------------------- (to here)
+
+You get back one file, e.g. acme.py.
+
+
+--------------------------------------------------------------------
+2. PUT IT ON THE SERVER (no rebuild, no restart needed)
+--------------------------------------------------------------------
+  On the SERVER PC (http://localhost:8080 - plugins can not be added over the network, they are program code):
+    Settings > Suppliers and readers > "Add plugin (.py)" > choose acme.py
+  or copy acme.py into   PERMIT_SERVER_DATA\plugins\   and click "Reload".
+
+  The list shows a green dot = loaded, red = an error (the message says what - paste it back into the chat).
+  An older copy is kept in plugins\_old when you replace a plugin. "Switch off" moves it to plugins\_off.
+
+
+--------------------------------------------------------------------
+3. TEST IT
+--------------------------------------------------------------------
+  Settings > Suppliers and readers > Test a PDF: tool "Auto" > choose a PDF of that supplier.
+  You see which reader was used ("Reader: ACME invoice"), invoice no, total, number of lines, the first 12 lines
+  (item, description, qty, price, amount, HS, COO, net weight) and the notes. Nothing is saved.
+
+  Then make a normal New job (tool Auto) with that supplier's documents and look at the Validate page.
+
+
+--------------------------------------------------------------------
+4. FIX OR IMPROVE A PLUGIN LATER ("train" it on a new sample)
+--------------------------------------------------------------------
+  In a new chat attach: the plugin .py (Settings > Suppliers > download button next to it), the PDF it reads wrong,
+  and a screenshot / copy of the Test a PDF result. Prompt:
+
+  ----------------------------------------------------------------- PROMPT
+  This is my PERMIT SERVER reader plugin [acme.py] (attached) and a new sample PDF it reads wrong.
+  Wrong: [e.g. line 3 missing / HS code empty / net weight 0 / invoice total mismatch].
+  Correct values: [item, qty, amount, HS, COO, NW ...].
+  Fix the plugin so it reads the new sample AND still reads the old layout. Keep the same NAME, match() and
+  read() rules (PLUGIN_TEMPLATE). Test on the attached PDF(s) and give me the whole updated file.
+  -----------------------------------------------------------------
+  Then "Add plugin" again with the new file (same name replaces it).
+
+
+--------------------------------------------------------------------
+5. A WHOLE NEW TOOL (own Excel rules, like Danfoss / Festo / MSD)
+--------------------------------------------------------------------
+  Most suppliers only need a reader plugin (the "Any supplier" rules do the rest). When a customer needs its own
+  rules (own description format, own matching of invoice / packing list / B/L, export-only header ...), it becomes a
+  built-in tool - like MSD (export) was added from MSD PERMIT TOOL:
+
+  ----------------------------------------------------------------- PROMPT
+  Add my [XYZ PERMIT TOOL] (attached: the engine .py, the tool .py, settings .json, product master, README,
+  sample PDFs) as a new tool in my PERMIT SERVER (attached: PERMIT_SERVER.zip). Keep its reading and Excel rules,
+  connect it like msd_server_engine.py does (adapter, TOOLS entry, auto-detect, product master), test it with the
+  samples and give me the updated PERMIT_SERVER.zip.
+  -----------------------------------------------------------------
+  Then: STOP_SERVER.bat, unzip over the server folder (PERMIT_SERVER_DATA stays), BUILD_SERVER_EXE.bat,
+  START_SERVER_BACKGROUND.bat (or GO_ONLINE.bat).
+
+
+SAFETY
+  - A plugin is program code that runs on the server PC. Only add plugins you got from your own chat / your team.
+  - Only an admin on the server PC can add or switch off plugins; every change is in Activity.
+  - Keep the Backup (Settings) before big changes. Plugins are in PERMIT_SERVER_DATA\plugins (in every Backup, and
+    they move with the server folder).

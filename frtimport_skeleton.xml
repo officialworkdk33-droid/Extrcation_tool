@@ -1,0 +1,271 @@
+<FrtImport>
+	<Comm>
+		<DocType>CUSTOMS PERMIT</DocType>
+		<Version>4.1</Version>
+		<SndOrgID>ITG_INDIA</SndOrgID>
+		<RcpOrgID>YCH</RcpOrgID>
+		<DateTime />
+	</Comm>
+	<ShipmentHeader>
+		<ShptJobNo />
+		<ShptJobDate />
+		<ShptXRef />
+		<ShptRef />
+		<ShptMsgType />
+		<ShptDeclType />
+		<ShptPackingType />
+		<ShptBGInd />
+		<ShptMAWB />
+		<ShptHAWB />
+		<ShptPlaceOfRelease />
+		<ShptLocForRelease />
+		<ShptPlaceOfReceipt />
+		<ShptLocForReceipt />
+		<ShptImpExpCRNo />
+		<ShptImpExpName1 />
+		<ShptImpExpName2 />
+		<ShptInwardCarrCRNo />
+		<ShptInwardCarrName />
+		<ShptExpCRNo />
+		<ShptExpName1 />
+		<ShptExpName2 />
+		<ShptExpStreetName />
+		<ShptExpPostBoxNo />
+		<ShptExpCityName />
+		<ShptExpSubDivCode />
+		<ShptExpSubDivName />
+		<ShptExpPostalCode />
+		<ShptExpCtryCode />
+		<ShptOutwardCarrCRNo />
+		<ShptOutwardCarrName />
+		<ShptCsgnCRNo />
+		<ShptCsgnName1 />
+		<ShptCsgnName2 />
+		<ShptCsgnStreetName />
+		<ShptCsgnPostBoxNo />
+		<ShptCsgnCityName />
+		<ShptCsgnSubDivCode />
+		<ShptCsgnSubDivName />
+		<ShptCsgnPostalCode />
+		<ShptCsgnCtryCode />
+		<ShptCgoAgtCRNo />
+		<ShptCgoAgtName />
+		<ShptEndUserCRNo />
+		<ShptEndUserName />
+		<ShptEndUserStreetName />
+		<ShptEndUserPostBoxNo />
+		<ShptEndUserCityName />
+		<ShptEndUserSubDivCode />
+		<ShptEndUserSubDivName />
+		<ShptEndUserPostalCode />
+		<ShptEndUserCtryCode />
+		<ShptEndUserCtryName />
+		<ShptHandlingAgtCRNo />
+		<ShptHandlingAgtName />
+		<ShptClaimCRNo />
+		<ShptClaimCmp />
+		<ShptClaimName />
+		<ShptClaimNRIC />
+		<ShptClaimNation />
+		<ShptClaimTel />
+		<ShptMfgName />
+		<ShptMfgStreetName />
+		<ShptMfgPostBoxNo />
+		<ShptMfgCityName />
+		<ShptMfgSubDivCode />
+		<ShptMfgSubDivName />
+		<ShptMfgPostalCode />
+		<ShptMfgCtryCode />
+		<ShptTptMode />
+		<ShptArrDeptDate />
+		<ShptStartDate />
+		<ShptFltVsl />
+		<ShptVoy />
+		<ShptPOL />
+		<ShptOutTptMode />
+		<ShptPOD />
+		<ShptCtryFinalDest />
+		<ShptVslType />
+		<ShptStartRemoveDate />
+		<ShptStartImpDate />
+		<ShptEndImpDate />
+		<ShptOutFltVsl />
+		<ShptOutVoy />
+		<ShptStartDeptDate />
+		<ShptOutMAWB />
+		<ShptOutHAWB />
+		<ShptTtlDuty1 />
+		<ShptTtlDuty2 />
+		<ShptTtlOtherTax />
+		<ShptTtlGSTPayable />
+		<ShptTtItem />
+		<ShptDeclValue />
+		<ShptTtlGSTPaid />
+		<ShptTtlWgt />
+		<ShptTtlWgtUnit />
+		<ShptTtlPcs />
+		<ShptTtlPcsUnit />
+		<ShptTtlDutyQty />
+		<ShptTtlDutyQtyUnit />
+		<ShptRemark />
+		<ShptReadySubmit />
+		<ShptPrevPmtNo />
+		<ShptOUTCOLink />
+		<ShptApplPrdCode />
+		<ShptCertType1 />
+		<ShptCertType2 />
+		<ShptEntryYear />
+		<ShptGSPDonorCountry />
+		<ShptPreferenceContentPercent />
+		<ShptCurrencyCode />
+		<ShptAddCertificateDet1 />
+		<ShptAddCertificateDet2 />
+		<ShptAddCertificateDet3 />
+		<ShptAddCertificateDet4 />
+		<ShptAddCertificateDet5 />
+		<ShptTransportDet1 />
+		<ShptTransportDet2 />
+		<ShptTransportDet3 />
+		<ShptTransportDet4 />
+		<ShptTransportDet5 />
+		<ShptPlaceOfStorage />
+		<VccSlac />
+		<CPCCode>
+			<CPCCode />
+			<ProcessingCode>
+				<ProcessCode1 />
+				<ProcessCode2 />
+				<ProcessCode3 />
+			</ProcessingCode>
+		</CPCCode>
+		<Invoice>
+			<InvoiceNo />
+			<InvoiceDate />
+			<TermType />
+			<SupplierName />
+			<ManuName />
+			<InvoiceFreightAndOtherCharges>
+				<ChargeCode />
+				<Amount />
+				<PercentTtlQty />
+				<Rate />
+				<FromCurrCode />
+			</InvoiceFreightAndOtherCharges>
+		</Invoice>
+		<Item>
+			<ItemHsCode />
+			<ItemDesc />
+			<ItemCtryOrigin />
+			<ItemQty />
+			<ItemUnit />
+			<ItemWgt />
+			<ItemWgtUnit />
+			<ItemFOB />
+			<ItemMark />
+			<ItemBrand />
+			<ItemModel />
+			<ItemInvoiceTerm />
+			<ItemValue />
+			<ItemGST />
+			<ItemFee />
+			<ItemInvoiceNo />
+			<ItemInvoiceDate />
+			<ItemRateType />
+			<ItemDutyInd />
+			<ItemSDNPInd />
+			<ItemDutyRate1 />
+			<ItemDutyUnit1 />
+			<ItemDutyAmt1 />
+			<ItemDutyRate2 />
+			<ItemDutyUnit2 />
+			<ItemDutyAmt2 />
+			<ItemOtherTaxRate />
+			<ItemOtherTaxUnit />
+			<ItemOtherTaxAmt />
+			<ItemDutyQty />
+			<ItemDutyQtyUnit />
+			<ItemTtlDutyQty />
+			<ItemTtlDutyQtyUnit />
+			<ItemPrefRate />
+			<ItemCatCode />
+			<ItemEndUseCode1 />
+			<ItemEndUseCode2 />
+			<ItemEndUseCode3 />
+			<ItemEndUseDesc />
+			<ItemUnitPrice />
+			<ItemUnitPriceCurrencyCode />
+			<ItemInHAWB />
+			<ItemOutHAWB />
+			<ItemProdCode1 />
+			<ItemProdQty1 />
+			<ItemProdUnit1 />
+			<ItemProdCode2 />
+			<ItemProdQty2 />
+			<ItemProdUnit2 />
+			<ItemProdCode3 />
+			<ItemProdQty3 />
+			<ItemProdUnit3 />
+			<ItemProdCode4 />
+			<ItemProdQty4 />
+			<ItemProdUnit4 />
+			<ItemProdCode5 />
+			<ItemProdQty5 />
+			<ItemProdUnit5 />
+			<ItemCostLUDate />
+			<ItemCooCertQty />
+			<ItemCooCertQtyUnit />
+			<ItemCooCertValue />
+			<ItemCooMfrCostDate />
+			<ItemCooTxtCode />
+			<ItemCooTxtQuotQty />
+			<ItemCooQtyUnit />
+			<ItemCooInvoiceNo />
+			<ItemCooInvoiceDate />
+			<ItemCooOrigCritCond1 />
+			<ItemCooOrigCritCond2 />
+			<ItemCooOrigCritCond3 />
+			<ItemCooCertHsCode />
+			<ItemCooPercentContent />
+			<ItemCooCertDesc />
+			<ItemAdditionalInfo>
+				<ItemInHseCode />
+				<ItemFOBForeignAmt />
+				<ItemFOBForeignCurr />
+			</ItemAdditionalInfo>
+			<ItemPackingAndVehicleInfo>
+				<CurrLotNo />
+				<PrevLotNo />
+				<VolPercent />
+				<VolUnit />
+				<OuterPack />
+				<OuterUnit />
+				<InPack />
+				<InUnit />
+				<InnerPack />
+				<InnerUnit />
+				<InMostPack />
+				<InMostUnit />
+				<CalDutyInd />
+				<CalQtyInd />
+				<NoOfStick />
+				<TestWt />
+				<ProdCode />
+				<EngineCapacity />
+				<EnginePower />
+				<OrigRegDate />
+				<SingaporeRegDate />
+			</ItemPackingAndVehicleInfo>
+			<ItemVehicleEngineChasis>
+				<VehicleEngineNo />
+				<VehicleChassisNo />
+				<VehicleType />
+			</ItemVehicleEngineChasis>
+			<ItemCascInfo>
+				<CascCode1 />
+				<CascCode2 />
+				<CascCode3 />
+				<CascEndUseDesc />
+			</ItemCascInfo>
+		</Item>
+		</ShipmentHeader>
+</FrtImport>
