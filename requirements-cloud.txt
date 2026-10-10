@@ -1,0 +1,9 @@
+flask>=3.0
+waitress>=3.0
+openpyxl
+xlrd
+pypdf>=4.0
+pdfplumber
+pypdfium2
+Pillow
+numpy

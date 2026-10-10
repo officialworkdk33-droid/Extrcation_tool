@@ -1,0 +1,7 @@
+Tesseract-OCR
+PERMIT_SERVER_DATA
+*.exe
+*.bat
+__pycache__
+build
+dist

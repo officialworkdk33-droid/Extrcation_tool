@@ -1,0 +1,236 @@
+TRAINED DOCUMENTS - every document layout the PERMIT SERVER / tools read automatically (from the start until now)
+INFINITY SOLUTIONS - updated 09/10/2026
+=====================================================================================================================
+Where the code is:  export_docs.py (known layouts, READERS list)  |  plugins\*.py shipped with the server  |  readers.py (any other invoice / packing list /
+air waybill)  |  danfoss_docs.py, festo_docs.py, agilent_engine.py, msd_engine.py, jfood_server_engine.py (own tools)
+|  plugins: PERMIT_SERVER_DATA\plugins\*.py (added later without rebuilding).
+New job: no supplier list - the tool / reader is ALWAYS chosen from the document layout (also when PDFs are added later).
+Inside "Any supplier" the layout is recognised from the text of each file.
+
+HS LISTS BY DESCRIPTION (Settings > Product masters): PANASONIC FACTORY built in - items without an HS get the HS of the
+same / nearest description (nearest = CHECK), nothing near -> empty. Upload a new version on the server any time.
+
+CUSTOMER RULES (job > Requirements > Customer rules): the rules of the customers found in the documents are listed after
+reading, all ticked = used; untick one you do not need for that job (items worked out again at once; Validate shows
+"Customer rules: n used, n unticked"). Customers with rules: SANDVIK, DOW CHEMICAL PACIFIC, RS COMPONENTS (permit_engine.CUSTOMER_RULES).
+
+RULES FOR EVERY LAYOUT
+- Export permit = export fields only, import permit = import fields only (Exporter / Outward / Out / Departure /
+  Discharge / Consignee / CO  vs  Importer / Inward / In / Arrival). Export date = ETD / ATD / shipped on board;
+  import date = ETA / ATA.
+- HS code typed by the user -> HS UOM + HS qty worked out again (10 digits -> 8).
+- Brand from the documents; none -> user picks UNBRANDED / a brand once (remembered per supplier); document brands stay.
+- Same invoice / packing list added twice is used once. Scanned PDFs: OCR, sideways pages turned automatically.
+- Never a guessed value: blank + CHECK note, listed on Validate and in CHECK_REPORT.xlsx.
+
+---------------------------------------------------------------------------------------------------------------------
+A. OWN TOOLS (separate tool in New job)
+---------------------------------------------------------------------------------------------------------------------
+ 1. DANFOSS (import)            invoice + packing lists + DHL customs instructions + B/L      danfoss_engine / danfoss_docs
+ 2. FESTO (import)              invoice SPOOL (one position per page) + ZGPL packing list + B/L + DHL customs instr.
+                                other charges (packing) -> last item / invoice total / Other Taxable Charge
+ 3. AGILENT (import)            Agilent Technologies Singapore invoice PDFs (also scans) + packing list + AWB;
+                                HAWB from the file name when not readable (CHECK)
+ 3b. AGILENT "IC CUSTOMS INVOICE" + Packing List (intercompany, e.g. Agilent Technologies Taiwan -> Agilent Technologies
+    Singapore (International) SG10 / SG1U, CA HAND CARRIES, Carrier Ref CR9-10 / MEA#1793 ...) - DGF OCEAN team, 09/10/2026
+    Invoice no. = IC Customs Invoice No (0635015537; PF-... proforma kept in RAW_DATA), invoice / order date MM/DD/YYYY,
+    Incoterm DDU (Term Type CIF), Sold-To RN = importer UEN (201815040D). Lines: Del. Item / Qty / Uom / Product Number /
+    description (2 lines joined) / unit price / total; Box Number + Box Weight, CoO, National HTS (11 digits -> first 8,
+    auto-mapped to the UPDATE HS CODE list), ECCN, LICENSE TEXT, Mfg No. Totals: Total Boxes / Total weight / Amount in USD.
+    Weights: the Box Weight printed on every line (and every packing list row) is the WHOLE box - counted once per box,
+    shared over the lines of that box by value, NW = 85 %. Packing list = item / quantity check only.
+    No HAWB on these (hand carry): all IC invoices of the same supplier + consignee in one job = ONE permit (one row per
+    invoice line, In HAWB / OBL from Cargo details - paste the HBL / OBL / vessel / ETA). "CA HAND CARRIES" is not used
+    as carrier agent / forwarder. Example: 6 invoices + 6 packing lists -> 1 permit, 96 lines, USD 49,615.65, 6 boxes,
+    GW 53 KG, NW 45.05 KG.
+ 4. MSD (export)                MSD / Merck Sharp & Dohme invoices + packing lists + B/L + DHL instruction e-mail;
+                                all deliveries of one B/L = one Excel; description ITEM , DESC , QTY , NW , GW
+ 5. JAPAN FOOD - GLT (import)   GLT CO.,LTD invoice Excel + ANA / JAL air waybill + SFA master list (+ old permit);
+                                HS + product code only from the SFA master; description NAME**PREFECTURE**
+
+---------------------------------------------------------------------------------------------------------------------
+B. "ANY SUPPLIER" - KNOWN LAYOUTS (export_docs.py)
+---------------------------------------------------------------------------------------------------------------------
+ 6. UD TRUCKS SINGAPORE invoice ("I N V O I C E")                         items, HS, COO, values
+ 7. KALMAR / BROMMA Pte Ltd TAX INVOICE                                    items, HS, COO, values
+ 8. GETINGE commercial invoice                                             items, HS, COO, values
+ 9. CUMMINS ASIA PACIFIC invoice ("HARMONIZED TARIFF")                     items, HS, COO, values
+10. L BEAUTY Pte Ltd TAX INVOICE                                           items, HS, COO, values
+11. BMW parts invoice (HU ID)                                              items, HS, COO, values
+12. PERKINS ENGINES invoice summary (TARIFF)                               items, HS, COO, values
+12b. PERKINS ENGINES COMPANY LTD (Warrington, UK) "Customs Only Invoice" (sea import to Perkins Engines Asia Pacific,
+    e.g. 800322200): Invoice Detail per item (order, item no., part, qty sent, price per pack, value) + Tariff Code, Country
+    of Origin, Qty Sent Net Wt (net KG of the line); missing tariff / COO from the Country of Origin / Tariff Summary (same
+    part), items cross-checked with it; Case Summary = packages (48 handling units) + gross; CIP / GBP total.
+    Net weight: item nets (= summary) used - page 1 / case net (handling units) differs -> CHECK note.
+12c. RS COMPONENTS LIMITED (UK) consolidated invoice EXCEL (.xlsx / .xls, "RS Commercial Invoice") -> RS Components Pte Ltd,
+    import (e.g. Z200826SIN20260819, 936 lines): Line No, Product Code, description, qty, UOM, CCCN (HS), COO, gross / nett
+    weight, Sales Invoice Number, handling unit (= package); item value = Total Amount INCLUDING charges (= Invoice Amount).
+    + DHL sea customs instructions (S2603631921) + Danmar express sea waybill (BHXA24375). Same items as the RS COMPO TOOL.
+    Customer rules (tick / untick): items combined by HS + COO (descriptions joined, max 500, whole words); CASC Product
+    Code 1 from the RS product code master by HS (Settings > Product masters - upload new versions); max 50 items per
+    Excel, IDAMISC / PCD in their own files (<HAWB>_J-01_GENERAL.xlsx ... _J-10_IDAMISC.xlsx); Trader's Remarks
+    J-n / shipment / GBP@rate / (INV: sales invoices of that Excel) / PARTS OF CONTAINER NO#... & OBL NO#... (type the
+    exchange rate + J start on the Customer rules tab); invoice number on the Invoice sheet; HS qty = invoice qty (any UOM).
+13. LEGRAND invoice (Commodity / Country of origin)                        items, HS, COO, values
+14. DALIAN NURMI HYDRAULICS scanned pack (to Sandvik SG, import)
+    summary page (check only) + one INVOICE per order + Delivery Note; item code O->0; HS 10->8; Package Fee = other
+    charge; net / gross per article from the delivery note; 39 wooden cases; COO not printed -> CN (CHECK).
+15. SANDVIK MINING & CONSTRUCTION LOGISTICS - INVOICE + PACKING LIST / dispatch note  (EXPORT ONLY)
+    Item Description = "TOOLS OR PARTS INV NO : ( <invoice> )" on every item (fixed text + invoice number); packing list: packages + weight, items per package with COO.
+    Exporter SANDVIK SMC LOGISTICS LTD: type the UEN once (remembered); HAWB comes later - type it.
+    2nd layout (built in - was the plugin sandvik_tax_invoice.py, e.g. INV_2120450 + Usr-DispatchNote_2120450 to Sandvik Chile):
+    "TAX INVOICE" with per line Tarrif (HS), Country of Origin, Net / Gross weight, Dispatch note, Load ID, Package No.;
+    description may run over 2 lines / the next page; packing list with Generic Carton / DW3 / DW2 Pallet packages
+    (mixed = PKG), numeric item codes (55027766) summed per item. Same TOOLS OR PARTS INV NO rule, EXPORT only.
+    Also: several invoices of one load (INV_2123424 -1 / -2, INR) grouped by the Danmar B/L (SINC61503); the Sandvik hub
+    "Bill of Lading" CNT... (pickup: packages + weight, lowest priority - the forwarder B/L wins).
+    Rules on the Customer rules tab (tick / untick): Export permit only; Description = TOOLS OR PARTS INV NO : ( invoice no ).
+15b. DOW CHEMICAL PACIFIC (SINGAPORE) - EXPORT (e.g. shipment 0048761135, invoice 986053162, B/L SINC59827)
+    Export Invoice: invoice no / date, Co.Reg. No. = exporter UEN, Customer Order Number + Our Reference, ship-to,
+    delivery terms (CFR ...), contract currency (USD - not the SGD GST equivalent), item: qty + packing (12 Bag),
+    material no, amount, description, gross / net weight, delivery note, COO, "Customs tariff nbr - Export" = HS,
+    Shipment No. Consolidated Packing List (also the copy printed without spaces - the same list twice is used once),
+    Consolidated Booking Advice (shipment date = departure, ETA - lowest priority), Danmar B/L (1 Pallet(s), gross).
+    Customer rules (tick / untick): Export job; Model = shipment number; Brand = DOW; Description + Our Reference
+    ("PARALOID K-400P Processing Aid 20KG Bag 119251423"); Invoice sheet Invoice Number = 986053162.
+15c. VULCAN INDUSTRIAL ENGINEERING (India) -> Sandvik Mining & Construction Logistics, Singapore - IMPORT (normal, no
+    customer rules). EXPORT INVOICE per page (a PDF can hold several; the same invoice twice is used once): invoice /
+    delivery / PO no, gross / net weight, boxes, line, description (no spaces in the PDF - rebuilt from word positions),
+    HSN code, qty, UOM, rate, amount, part no. (item), COO India. PACKING LIST per delivery: qty, net / gross, packs.
+    No HAWB / B/L in the job: all invoices of one supplier to one consignee = ONE permit (NO_HAWB_INV_...).
+16. HALLIBURTON - SHANGHAI EVEREST FINE CHEMICALS commercial invoice + packing list (import, ME)
+    lines per PO with Material No., qty in pounds, one HS (6 -> 8 digits) + COO for the document, weights from the PL.
+17. VF (INFOR NEXUS) "VF - INVOICE" (Timberland / The North Face garments, import IG)
+    PO line, buyer item #, description = goods description + style, HTS, COO, qty, unit price, amount (columns by
+    word position) + VF PackingList .XLS / .XLSX: PACKAGE DETAIL per carton -> net / gross KG per invoice PO line.
+18. SHELL EASTERN TRADING (lubricants, EXPORT e.g. to Shell Tianjin)
+    Tax Invoice: one line per delivery (container); item value = Net Price - Second Distrib Cost.
+    DELIVERY NOTE (one per container): net weight + HS (Tariff No) used FIRST (invoice weight different = MISMATCH),
+    container, seal, pallets; gross weight "with pallets" = gross + pallet weight. COO SG. Brand: UNBRANDED (remembered).
+19. PANASONIC OPERATIONAL EXCELLENCE (Japan) "INVOICE & PACKING LIST" (import to Panasonic Factory Solutions AP,
+    e.g. KWE85298204-DOC.pdf - sideways scan)
+    case no / part no / qty / unit (PIECE UNIT PACK PAIR CAN) / price / amount; weight per case shared by value; case
+    range 60298-60300 uses the range total; COO "MADE IN ..." else Japan; brand = maker under the item (KOGANEI,
+    ORION KIKAI, PANASONIC); no HS on the invoice (type it, save to master); HAWB from the file name; Air + JPNRT.
+
+19b. TAIYO YUDEN (SINGAPORE) "TAX INVOICE" (e.g. MAL_4101238761 / 4101238666) - EXPORT to Kaifa Technology Malaysia
+    invoice no / date, Sold To / Ship To (MY), Term Point (DAP), USD total, Ship Via (DHL), "Carton : 1-11" = 11 CTN;
+    group line "... CAPACITOR (HS No:85322400)" = description + HS of the lines under it; item line PO-line / customer
+    part / qty PCS / unit price PER 1000 PCS / amount (permit unit price = amount / qty); next line maker part + "Made In
+    <country>" = COO. SG -> MY = transport mode Road (3), CHECK note.
+    + TAIYO YUDEN PACKING LIST (MAL_..._PL_...): per carton PO line / part / qty / net KG + "Weight & Dimension" table
+    (net / gross / M3 per carton). Cartons added up per PO line + part = exact net and gross weight of each invoice
+    line; total gross weight (e.g. 24.600 + 90.490 = 115.09 KG) and cartons from the packing lists.
+19c. DUPONT / SPECIALTY ELECTRONIC MATERIALS SWITZERLAND "LEGAL I/C INVOICE" (BDP pack e.g. 1197631758 - Docs, IMPORT to
+    DuPont Diversified Industrials SG): every invoice in the PDF (European numbers), per line material / qty / unit /
+    exact net + gross weight / COO / Our Reference (customer order no.) / item FREIGHT added to the item value; the ONE
+    sea waybill pages (container, seal, packages, B/L HS-NO by net weight). Vendor product list + description rule.
+15d. SANDVIK MINING AND CONSTRUCTION LOGISTICS "INVOICE" INTO Singapore (e.g. SINGAPORE-2102651-INVOICE, from the
+    Pinkenba Australia warehouse to Sandvik SMC Logistics SG, IMPORT): invoice no / date, order / despatch note, DAP,
+    EUR, per line item code + description (split over 2 lines) / qty / price / net / gross / amount, IMPORT HS Code
+    (export HS kept for reference), COO, package no. The Sandvik export rules are NOT used for these imports. Net weight
+    more than gross on the invoice -> CHECK note. + SANDVIK PACKING LIST (2102651) as before.
+19d. MERCK HEALTHCARE KGAA "Invoice" / billing document (e.g. 1501200272, IMPORT to Merck Pte Ltd, ME permit):
+    billing no / date, CPT, SGD, line material / description / qty (23.995 PC = 23,995) / price per 1 PC / amount,
+    batch, COO, HS Code; invoice total gross + net weight (one line = that line's weights).
+    + MERCK KGAA PACKING LIST (freight order 6490007508): pallet rows (delivery, material, batch, qty, gross KG) +
+    Summary net weight per material; 28 pallets, total gross 3,019.623 KG, total net 650.375 KG.
+---------------------------------------------------------------------------------------------------------------------
+C. TRANSPORT DOCUMENTS / INSTRUCTIONS (any job)
+---------------------------------------------------------------------------------------------------------------------
+20. DHL CUSTOMS INSTRUCTIONS (BROKERAGE BSIN...)   importer + UEN, packages, gross weight, carrier agent, ocean B/L
+    (MAWB/OBL), house B/L, vessel / voyage, ports, ETD/ATD + ETA/ATA, place of release / receipt, permit type, container
+    (no., size, seal, FCL/LCL), permit remarks, freight (FRT + BAF -> Freight Charge for FOB / FCA / EXW), DHL forwarder.
+20b. DHL "Sea Freight FCL / LCL Arrival Customs Instructions Import / Export" (S260...): ocean B/L + house B/L (HAWB),
+    vessel / voyage, carrier, load / discharge port codes, ETD / ETA, packages, weight, container + seal + type, incoterm,
+    consignee + GST no. (UEN), place of release / receipt, type of permit, permit remarks, DHL forwarder.
+20c. ONE (Ocean Network Express) ARRIVAL NOTICE + SEA WAYBILL: ocean B/L, vessel / voyage, ETA, ports, container / seal,
+    pieces, weight, laden on board; inward carrier agent OCEAN NETWORK EXPRESS (SINGAPORE) PTE LTD.
+21. DSV ARRIVAL NOTICE (Sea Freight FCL / LCL)     ocean + house B/L, vessel / voyage, ports, ETD, ETA / ATA, container.
+22. DSV BILL OF LADING / SEA WAYBILL               house B/L (wins over the DSV "S" reference), packages, weight,
+    containers (CY/CY = FCL, CFS = LCL), shipped on board date.
+23. DHL / DANMAR LINES EXPRESS SEA WAYBILL / B/L   B.L. No., vessel / voyage, ports, containers + seals, gross, HS;
+    LCL drafts too ("4 Package(s) ... 1165.000 KG", CFS/CFS). Port names -> codes (NHAVA SHEVA = INNSA, SINGAPORE = SGSIN,
+    CHECK note) from the sea port table.
+23b. MAINFREIGHT AIR & OCEAN express house B/L (SDV...): document no. = HBL, CBR = ocean B/L, vessel / voyage, ports,
+    packages, gross weight, container / seal / type (CFS = LCL), incoterm, shipped on board date.
+23c. SEA FREIGHT FCL / LCL ARRIVAL NOTICE (CargoWise layout, e.g. Mainline S05534585): ocean + house B/L, vessel / voyage,
+    ports, ETD / ETA, packages (1 PKG (OUTER) ...), weight, container / seal / type.
+23d. DGF OCEAN TEAM IMPORTS (October 2026 batch) - weights from the packing lists, importer from the customs instructions:
+    ORGANON invoices (Lucerne, TW / AUS / IDN / MYS, Tariff Number Exp) + 3 packing list layouts (KN Geel, N.V. Organon
+      Oss, DHL Supply Chain Belgium scan) - delivery / material -> net weight.
+    COMMSCOPE EMEA invoice + PACKAGING SUMMARY (order / line -> gross / net KG).
+    NINGBO FENGMEI pack (China export declaration HS + invoice + packing list + contract), NINGBO SAFEWELL invoice + PL.
+    HALLIBURTON commercial invoice (Consolidated) + Shipment Manifest / Packing List; CRANE WORLDWIDE house B/L + NOA.
+    SHANGHAI JIANLAN invoice (PDF) + packing list (Excel; Chinese part names -> English, e.g. SENSOR).
+    ALLISON (WUXI) declaration invoice + packing list (Sandvik import).
+    VERTIV TECH (Jiangmen / Mianyang) customs invoice + packing list (Excel; "227.00*2" package weights, several parts
+      in one package -> split by qty); SINOTRANS house B/L + arrival notice (invoice list on the B/L attachment).
+    MAQUET (SUZHOU) / Getinge invoice + packing list (order no. = packing list; package-group weights).
+    SN APAC HOLDING (SharkNinja) invoice + packing list (Excel); CMA CGM freight invoice / carrier arrival notice = "not
+      for the permit". HS from the customs instructions Special Instructions ("HS CODE: 8414 5191") wins - an invoice HS
+      that differs is shown as MISMATCH.
+    GIVAUDAN: Givaudan International customer commercial invoice, Barneveld packing list, Arnold Suhr invoice + PL;
+      HS from the Givaudan material master (Settings > Customer product lists, GIVAUDAN.xlsx).
+    FESTO: Danmar B.L. No. / customs instructions house B/L (MRN ... SRN ... OBL HBL) fixed.
+    No HS on the invoice and one HS on the B/L / customs instructions ("Harmonized Code") -> that HS (if in the list).
+23f. AIRBUS / SATAIR sea shipments (Airbus Asia-Pacific Spares Centre c/o Satair): one PDF per house B/L = Airbus
+    "Shipping Advice No/Proforma Invoice" (European numbers; part no., kg net, qty, price, batch, origin, EU tariff,
+    Dest. Cust Tariff = HS) + Expeditors sea waybill; EXPEDITORS ARRIVAL NOTICE (master B/L + list of house B/Ls) and
+    DHL customs instructions with several house B/Ls -> ONE permit for the ocean B/L, In HAWB on every item.
+    Item rows option "Same HAWB + HS code + Origin (COO)" (e.g. 1,258 lines -> 458 rows).
+23e. DECLARATION ADVISOR (declaration_rules.py, Singapore Customs Module 5 "Types of Permit Applications"): every job gets
+    the declaration type the documents point to (INP / IPT / OUT / TNP + APS, SFZ, GST, DNG, GTR, DES, DRT ...) from the
+    Place of Release / Receipt codes, dutiable / controlled / liquor-tobacco items (UPDATE HS CODE list) and the permit
+    type, with what that type needs - and Declaration notes when the permit breaks the rules (dutiable goods on IPT GST,
+    dutiable + non-dutiable on INP APS, liquor in FTZ storage, wrong receipt code, TRADESP / RELIEF over S$400 ...).
+23j. CLASQUIN - MILLESIMA WINE & SPIRITS (air import, team CLASQUIN, permit type ID = IPT DNG Duty & GST):
+     one PDF = Clasquin house AWB (HAWB, MAWB 057-..., pieces, weight, flights, TERMS DDP) + Millesima invoice (DAE line,
+     wine name (FRANCE), appellation - colour, 'code-Degree 13.5 , Liter 0.75 , Weight 1.8 Kg , HSCode <EU code>') + CIVC
+     excise page. Clasquin 'detail_hscode' Excel = same invoice: every line checked (amount, litres, alcohol %), not used
+     twice (alone it works as the invoice). The printed HSCode is an EU code - NEVER used: liquor_rules.py picks the
+     Singapore HS + product code from the official HS list descriptions (still wine <=2L: <=15% 22042111, 15-23% 22042113,
+     >23% 22042114; red BH / white BJ / rose BA / fortified BF; sparkling 22041000 ZBP0BC000CS; whisky <=5L 22083090,
+     blended D / straight E (single malt / single cask), <=46% CW / >46% CX; gin, rum, vodka, brandy, liqueur, tequila,
+     mezcal, sake). Permit layout as the user's wine permit: HS Qty = litres (LTR), Dutiable Qty = bottle size (LTR),
+     Outer Pack = bottles (BOT), Alcohol Percentage, Brand UNBRANDED, CASC qty = litres, Casc sheet Code 1 = COO + 99999
+     (FR99999). XML: VolPercent, ItemDutyQty. Origin = the document's (FRANCE); lines whose appellation / producer is
+     another country (Italy DOC/IGT, Spain DO, Germany QmP, Australia Eden Valley, Japan Chichibu ...) listed as CHECK.
+     MASTER LIST (masters/CLASQUIN_MASTER_LIST.xlsx, past permits) only cross-checks - it has old classification errors.
+23i. MSD EXPORT (Gardasil to Korea, one B/L for several deliveries): OCEAN SHIPMENT BOOKING FORM (Excel) read as the
+     instructions - COUNTRY OF ORIGIN, SG HTS CODE (+ HS UOM from the HS list), ETD = Departure Date, freight terms;
+     B/L number completed from the file name when the PDF cuts it (SINC60376 -> SINC603762); invoice description used
+     when the packing list cuts it short; batch certificates, QA letters (MEP-...), TempTale notes (.docx) = not for
+     the permit (no error).
+23h. SHARKNINJA invoice: description from Long Description > Product / Item Description > text on the Item Code line;
+     value on the same or the next line; "$", "SGD" or no currency sign. No description -> CHECK note.
+23g. SEVERAL DOCUMENTS IN ONE PDF (combined scans): CommScope (Asia Suzhou, Connectivity, EMEA - all sites),
+     Maquet Suzhou, Organon, Givaudan, Arnold Suhr, Allison Wuxi, Halliburton, SharkNinja. The PDF is split at each
+     "Page 1 of N" / new document and every invoice and packing list is read on its own (log: "N documents in one PDF").
+     CommScope: exporter / origin site from the invoice, weights by PO + line + shipment (same PO line in two
+     shipments is kept apart), mixed pallets split by quantity. Example: 29 invoices + 25 packaging summaries in one
+     PDF -> 55 item rows, weights = packing list totals. Maquet: 4 invoices / 116 lines in one PDF (weights need the
+     packing lists). Many invoices -> file name "<first invoice>_AND_<n>_MORE".
+24. AIR WAYBILLS (any carrier, also scans)         HAWB / MAWB, pieces, gross weight, flights, airports, consignee.
+25. DHL E-MAIL INSTRUCTIONS (pasted in "Cargo details" or uploaded .txt / .eml / PDF)
+    STAFF / CARRIER / BOOKING REF / PLACE OF RELEASE / RECEIPT / TYPE OF PERMIT / CO TYPE / PERMIT REMARKS / SPECIAL
+    INSTRUCTIONS (SOB date, "INCLUDE DESCRIPTION: ...", "USE 6 DIGITS HS", "GROSS WEIGHT WITH PALLETS") and the
+    system block HOUSE / MASTER WAYBILL, DISCHARGE, VOYAGE, VESSEL, TERM, OUTER PACK, GW. These win over the documents.
+
+---------------------------------------------------------------------------------------------------------------------
+D. ANY OTHER SUPPLIER
+---------------------------------------------------------------------------------------------------------------------
+26. General reader (readers.py): any invoice / packing list PDF or Excel - columns found by their headings; profiles
+    learnt per supplier; optional AI reading. Check the result on Validate.
+
+=====================================================================================================================
+TRAINING A NEW DOCUMENT (in another chat)
+  Attach: the sample documents (PDF / Excel), UPDATE_HS_CODE.xlsx, the OUTPUT FILE (dec-upload Excel) and this file.
+  Prompt:
+    "This is my PERMIT SERVER (Singapore TradeNet permits). TRAINED_DOCUMENTS.txt lists what it already reads.
+     Write a plugin .py from PLUGIN_TEMPLATE.py for the attached <supplier> documents: invoice no / date, items
+     (item no, description, qty, UOM, price, amount, HS, COO, brand), net / gross weight, packages, HAWB / MAWB,
+     ports, dates. <IMPORT or EXPORT>. Rules: <e.g. value = ..., description = ...>. Never guess - leave blank +
+     note. Test it on every sample and show the totals against the invoice."
+  Then Settings > Suppliers and readers > Add plugin (.py) on the server PC, "Test a PDF", and add the layout here.

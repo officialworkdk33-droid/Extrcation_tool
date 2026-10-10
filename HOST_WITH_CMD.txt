@@ -1,0 +1,74 @@
+PERMIT SERVER - HOST IT WITH COMMAND PROMPT ONLY (Windows)
+============================================================
+Folder: unzip PERMIT_SERVER.zip so that  C:\PERMIT_SERVER\server.py  exists.
+
+---------------------------------------------------------------------------
+A. ONE TIME - install (Command Prompt)
+---------------------------------------------------------------------------
+1. Python 3.12+ must be installed ("Add python.exe to PATH" ticked). Check:
+      python --version
+
+2. Install the libraries:
+      cd /d C:\PERMIT_SERVER
+      python -m pip install -r requirements-cloud.txt
+
+3. Install Cloudflare's tunnel program (one time):
+      winget install --id Cloudflare.cloudflared
+   Close and reopen Command Prompt, then check:
+      cloudflared --version
+
+---------------------------------------------------------------------------
+B. EVERY TIME - start the server   (window 1 - keep it open)
+---------------------------------------------------------------------------
+      cd /d C:\PERMIT_SERVER
+      python server.py --no-browser
+
+   Check on this PC:  http://localhost:8080   (first time: create the admin user)
+   Stop the server:   Ctrl+C in this window   (or: python server.py --stop)
+   Start minimised:   start "PERMIT SERVER" /min python server.py --no-browser
+
+---------------------------------------------------------------------------
+C. EVERY TIME - put it on the internet   (window 2 - keep it open)
+---------------------------------------------------------------------------
+Option 1 - free link, no domain (address changes every start):
+      cloudflared tunnel --protocol http2 --url http://localhost:8080
+   -> copy the line  https://xxxx-xxxx.trycloudflare.com  and send it to your team.
+
+Option 2 - your domain  https://permit.infinitydeclaration.com
+   Needs ONE time: GoDaddy nameservers = neil.ns.cloudflare.com + robin.ns.cloudflare.com
+                   (Cloudflare shows the domain "Active"), and the tunnel route
+                   permit.infinitydeclaration.com -> http://localhost:8080
+   a) If cloudflared is already installed as a Windows service: nothing to type - it runs by itself.
+      Check:  sc query cloudflared        (STATE : RUNNING)
+   b) Otherwise run it in window 2 (token = Cloudflare > Tunnels > Infinity-Server > Add a replica, the eyJ... text):
+      cloudflared tunnel --protocol http2 run --token eyJ...your-token...
+   c) Or install it once as a service (Command Prompt "Run as administrator"):
+      cloudflared service install eyJ...your-token...
+   Never run the service AND a window with the same tunnel on two different PCs unless you want both.
+
+---------------------------------------------------------------------------
+D. START BY ITSELF AFTER A RESTART (optional, Command Prompt as administrator, one time)
+---------------------------------------------------------------------------
+      schtasks /create /tn "Permit Server" /sc onstart /ru SYSTEM /rl HIGHEST /tr "cmd /c cd /d C:\PERMIT_SERVER && python server.py --no-browser"
+   Remove it again:  schtasks /delete /tn "Permit Server" /f
+   (the cloudflared service from C-c starts by itself too)
+
+---------------------------------------------------------------------------
+E. UPDATE TO A NEW VERSION
+---------------------------------------------------------------------------
+      cd /d C:\PERMIT_SERVER
+      python server.py --stop
+   unzip the new PERMIT_SERVER.zip over C:\PERMIT_SERVER  (NEVER delete PERMIT_SERVER_DATA)
+      python -m pip install -r requirements-cloud.txt
+      python server.py --no-browser
+
+---------------------------------------------------------------------------
+F. CHECKS / PROBLEMS
+---------------------------------------------------------------------------
+   Server running?        curl http://localhost:8080        (or open it in the browser)
+   Port used by another?  netstat -ano | findstr :8080
+   Other port:            edit PERMIT_SERVER_DATA\server_config.json  "port": 8090  (and the tunnel URL)
+   More people at once:   server_config.json  "threads": 32   "workers": 2 (4 on an 8-core PC)
+   Error 1033 (Cloudflare): the cloudflared window/service is not running, or you opened an OLD trycloudflare link.
+   DNS_PROBE_FINISHED_NXDOMAIN on your domain: the GoDaddy nameservers are not Cloudflare's yet.
+   Backup:  copy the folder C:\PERMIT_SERVER\PERMIT_SERVER_DATA to another drive (server stopped), or Settings > Backup.
